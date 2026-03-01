@@ -88,6 +88,18 @@ void App::cursorPosCallback(GLFWwindow * window, double xpos, double ypos)
         }
         pixel->dirty=true;
     }
+    else if(app.currentMode==4&&app.showPreview){
+        
+        if(app.circleMode){
+            pixel->path.clear();
+            auto x0 = static_cast<int>(app.lastMouseLeftClickPos.x);
+            auto y0 = static_cast<int>(app.lastMouseLeftClickPos.y);
+            auto x1 = static_cast<int>(app.mousePos.x);
+            auto y1 = static_cast<int>(app.mousePos.y);
+            bresenhamCircle(pixel->path,x0,y0,x1,y1);
+            pixel->dirty = true;
+        }
+    }
     // Display a preview line which moves with the mouse cursor iff.
     // the most-recent mouse click is left click.
     // showPreview is controlled by mouseButtonCallback.
@@ -136,6 +148,12 @@ void App::keyCallback(GLFWwindow * window, int key, int scancode, int action, in
         app.mousePressed = false;
         app.polylinePoints.clear();
     }
+    else if(key==GLFW_KEY_4){
+        app.currentMode = 4;
+        app.showPreview = false;
+        app.mousePressed = false;
+        app.polylinePoints.clear();
+    }
     else if(key==GLFW_KEY_C){
         // logic for closing polygon
         if(app.currentMode==3){
@@ -156,7 +174,13 @@ void App::keyCallback(GLFWwindow * window, int key, int scancode, int action, in
             }
             else app.closePolygon=false;
         }
+    
     }
+    else if(key==GLFW_KEY_LEFT_SHIFT||key==GLFW_KEY_RIGHT_SHIFT){
+        if(action!=GLFW_RELEASE) app.circleMode=true;
+        else app.circleMode = false;
+    }
+
 }
 
 
@@ -213,7 +237,9 @@ void App::mouseButtonCallback(GLFWwindow * window, int button, int action, int m
 
             app.mousePressed = false;
             app.polylinePoints.clear();
-            
+        }
+        else if(action==GLFW_RELEASE && app.currentMode==4){
+            app.showPreview=false;
         }
     }
 }
@@ -240,7 +266,43 @@ void App::processKeyInput(GLFWwindow * window)
 
 }
 
+void App::bresenhamCircle(std::vector<Pixel::Vertex> &path, int xc, int yc, int x, int y)
+{
+    auto dist = [&](int dx, int dy){
+        return static_cast<int>(std::round(std::sqrt(dx*dx+dy*dy)));
+    };
 
+    int r = dist(xc-x,yc-y);
+    int x0 = 0;
+    int y0 = r;
+    int d = 1-r;
+
+
+    auto plot = [&](int dx, int dy){
+        path.emplace_back(xc+dx,yc+dy,1.0f,1.0f,1.0f);
+        path.emplace_back(xc+dx,yc-dy,1.0f,1.0f,1.0f);
+        path.emplace_back(xc-dx,yc+dy,1.0f,1.0f,1.0f);
+        path.emplace_back(xc-dx,yc-dy,1.0f,1.0f,1.0f);
+        path.emplace_back(xc+dy,yc+dx,1.0f,1.0f,1.0f);
+        path.emplace_back(xc+dy,yc-dx,1.0f,1.0f,1.0f);
+        path.emplace_back(xc-dy,yc+dx,1.0f,1.0f,1.0f);
+        path.emplace_back(xc-dy,yc-dx,1.0f,1.0f,1.0f);
+    };
+    
+    plot(x0,y0); 
+    while(x0<y0){
+        x0+=1;
+        if(d<0){
+            d+=((x0<<1)+1);
+        }
+        else{
+            y0-=1;
+            d+=(((x0-y0)<<1)+1);
+        }
+        plot(x0,y0);
+    }
+
+}
 void App::bresenhamLine(std::vector<Pixel::Vertex> & path, int x0, int y0, int x1, int y1)
 {
     if(x0>x1){
