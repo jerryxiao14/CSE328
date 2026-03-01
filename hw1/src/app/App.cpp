@@ -6,6 +6,7 @@
 #include "util/Shader.h"
 
 
+
 App & App::getInstance()
 {
     static App instance;
@@ -47,10 +48,27 @@ void App::cursorPosCallback(GLFWwindow * window, double xpos, double ypos)
         // glm::dvec2 offset = app.mousePos - app.lastMouseLeftPressPos;
         app.lastMouseLeftPressPos = app.mousePos;
     }
+    
 
+
+    if(app.currentMode==1 && app.showPreview){
+        auto pixel = dynamic_cast<Pixel*>(app.shapes.front().get());
+        
+        auto x0 = static_cast<int>(app.lastMouseLeftClickPos.x);
+        auto y0 = static_cast<int>(app.lastMouseLeftClickPos.y);
+        auto x1 = static_cast<int>(app.mousePos.x);
+        auto y1 = static_cast<int>(app.mousePos.y);
+        
+        pixel->path.clear();
+        bresenhamLine(pixel->path,x0,y0,x1,y1);
+        pixel->dirty=true;
+
+    }   
     // Display a preview line which moves with the mouse cursor iff.
     // the most-recent mouse click is left click.
     // showPreview is controlled by mouseButtonCallback.
+    
+    /*
     if (app.showPreview)
     {
         auto pixel = dynamic_cast<Pixel *>(app.shapes.front().get());
@@ -64,6 +82,7 @@ void App::cursorPosCallback(GLFWwindow * window, double xpos, double ypos)
         bresenhamLine(pixel->path, x0, y0, x1, y1);
         pixel->dirty = true;
     }
+    */
 }
 
 
@@ -80,6 +99,12 @@ void App::keyCallback(GLFWwindow * window, int key, int scancode, int action, in
     if (key == GLFW_KEY_A && action == GLFW_RELEASE)
     {
         app.animationEnabled = !app.animationEnabled;
+    }
+    if(key==GLFW_KEY_1){
+        app.currentMode=1;// single line
+        app.showPreview = false;
+        app.mousePressed = false;
+        app.polylinePoints.clear();
     }
 }
 
