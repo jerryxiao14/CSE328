@@ -42,6 +42,8 @@ void App::cursorPosCallback(GLFWwindow * window, double xpos, double ypos)
     app.mousePos.x = xpos;
     app.mousePos.y = App::kWindowHeight - ypos;
 
+    auto pixel = dynamic_cast<Pixel*>(app.shapes.front().get());
+
     if (app.mousePressed)
     {
         // // Note: Must calculate offset first, then update lastMouseLeftPressPos.
@@ -52,7 +54,6 @@ void App::cursorPosCallback(GLFWwindow * window, double xpos, double ypos)
 
 
     if(app.currentMode==1 && app.showPreview){
-        auto pixel = dynamic_cast<Pixel*>(app.shapes.front().get());
         
         auto x0 = static_cast<int>(app.lastMouseLeftClickPos.x);
         auto y0 = static_cast<int>(app.lastMouseLeftClickPos.y);
@@ -64,6 +65,29 @@ void App::cursorPosCallback(GLFWwindow * window, double xpos, double ypos)
         pixel->dirty=true;
 
     }   
+    else if(app.currentMode==3&&!app.polylinePoints.empty()){
+        pixel->path.clear();
+        for(size_t i=0;i+1<app.polylinePoints.size();++i){
+            int x0 = static_cast<int>(app.polylinePoints[i].x);
+            int y0 = static_cast<int>(app.polylinePoints[i].y);
+            int x1 = static_cast<int>(app.polylinePoints[i+1].x);
+            int y1 = static_cast<int>(app.polylinePoints[i+1].y);
+            bresenhamLine(pixel->path,x0,y0,x1,y1);
+        }
+        auto x0 = static_cast<int>(app.lastMouseLeftClickPos.x);
+        auto y0 = static_cast<int>(app.lastMouseLeftClickPos.y);
+        auto x1 = static_cast<int>(app.mousePos.x);
+        auto y1 = static_cast<int>(app.mousePos.y);
+        bresenhamLine(pixel->path,x0,y0,x1,y1);
+        if(app.closePolygon){
+            x0 = x1;
+            y0 = y1;
+            x1 = static_cast<int>(app.polylinePoints[0].x);
+            y1 = static_cast<int>(app.polylinePoints[0].y);
+            bresenhamLine(pixel->path,x0,y0,x1,y1);
+        }
+        pixel->dirty=true;
+    }
     // Display a preview line which moves with the mouse cursor iff.
     // the most-recent mouse click is left click.
     // showPreview is controlled by mouseButtonCallback.
@@ -106,6 +130,33 @@ void App::keyCallback(GLFWwindow * window, int key, int scancode, int action, in
         app.mousePressed = false;
         app.polylinePoints.clear();
     }
+    else if(key==GLFW_KEY_3){
+        app.currentMode = 3;
+        app.showPreview = false;
+        app.mousePressed = false;
+        app.polylinePoints.clear();
+    }
+    else if(key==GLFW_KEY_C){
+        // logic for closing polygon
+        if(app.currentMode==3){
+            if(action!=GLFW_RELEASE){
+                app.closePolygon=true;
+                /*
+                int n = app.polylinePoints.size();
+                if(n){
+                    int x0 = app.polylinePoints[n-1].x;
+                    int y0 = app.polylinePoints[n-1].y;
+                    int x1 = app.polylinePoints[0].x;
+                    int y1 = app.polylinePoints[0].y;
+                    auto pixel = dynamic_cast<Pixel*>(app.shapes.front().get());
+                    bresenhamLine(pixel->path,x0,y0,x1,y1);
+                    pixel->dirty = true;
+                }
+                */
+            }
+            else app.closePolygon=false;
+        }
+    }
 }
 
 
@@ -117,6 +168,9 @@ void App::mouseButtonCallback(GLFWwindow * window, int button, int action, int m
     {
         if (action == GLFW_PRESS)
         {
+            if(app.currentMode==3){
+                app.polylinePoints.push_back(app.mousePos);
+            }
             app.mousePressed = true;
             app.lastMouseLeftClickPos = app.mousePos;
             app.lastMouseLeftPressPos = app.mousePos;
@@ -134,9 +188,32 @@ void App::mouseButtonCallback(GLFWwindow * window, int button, int action, int m
 
     if (button == GLFW_MOUSE_BUTTON_RIGHT)
     {
-        if (action == GLFW_RELEASE)
+        if (action == GLFW_RELEASE && app.currentMode==1)
         {
             app.showPreview = false;
+        }
+        else if(action==GLFW_RELEASE && app.currentMode==3){
+            app.polylinePoints.push_back(app.mousePos);
+            if(app.closePolygon)
+            {
+                if(!app.polylinePoints.empty()){
+                    app.polylinePoints.push_back(app.polylinePoints.front());
+                }
+            }
+            auto pixel = dynamic_cast<Pixel*>(app.shapes.front().get());
+            pixel->path.clear();
+            for(size_t i=0;i+1<app.polylinePoints.size();++i){
+                int x0 = static_cast<int>(app.polylinePoints[i].x);
+                int y0 = static_cast<int>(app.polylinePoints[i].y);
+                int x1 = static_cast<int>(app.polylinePoints[i+1].x);
+                int y1 = static_cast<int>(app.polylinePoints[i+1].y);
+                bresenhamLine(pixel->path,x0,y0,x1,y1);
+            }
+            pixel->dirty = true;
+
+            app.mousePressed = false;
+            app.polylinePoints.clear();
+            
         }
     }
 }
