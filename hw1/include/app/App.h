@@ -27,7 +27,7 @@ private:
 
     std::vector<glm::dvec2> polylinePoints;
     bool closePolygon {false}; // tracks if key c is held and if so close polygon
-
+    bool circleMode {false};
     static void cursorPosCallback(GLFWwindow *, double, double);
     static void framebufferSizeCallback(GLFWwindow *, int, int);
     static void keyCallback(GLFWwindow *, int, int, int, int);
@@ -48,6 +48,9 @@ private:
     /// All pixels on this line are appended to path.
     static void bresenhamLine(std::vector<Pixel::Vertex> & path, int x0, int y0, int x1, int y1);
 
+
+    /// Bresenham circle-drawing algorithm  for center (xc,yc) and a point on circle (x,y)
+    static void bresenhamCircle(std::vector<Pixel::Vertex> &path, int xc, int yc, int x, int y);
     App();
 
     void render();
