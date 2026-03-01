@@ -23,6 +23,11 @@ public:
 
 private:
     // GLFW callbacks.
+    int  currentMode {0};   //0 is none, 1 is line drawing, 3 is polyline-polygon
+
+    std::vector<glm::dvec2> polylinePoints;
+    bool closePolygon {false}; // tracks if key c is held and if so close polygon
+
     static void cursorPosCallback(GLFWwindow *, double, double);
     static void framebufferSizeCallback(GLFWwindow *, int, int);
     static void keyCallback(GLFWwindow *, int, int, int, int);
