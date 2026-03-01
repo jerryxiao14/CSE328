@@ -141,32 +141,63 @@ void App::processKeyInput(GLFWwindow * window)
 
 void App::bresenhamLine(std::vector<Pixel::Vertex> & path, int x0, int y0, int x1, int y1)
 {
+    if(x0>x1){
+        std::swap(x0,x1);
+        std::swap(y0,y1);
+    }
+
+    int ystep = (y1>y0)? 1:-1;
+
     int dx = std::abs(x1 - x0);
     int dy = std::abs(y1 - y0);
     int p = 2 * dy - dx;
     int twoDy = 2 * dy;
     int twoDyMinusDx = 2 * (dy - dx);
 
+    int twoDx = dx<<1;
+    int twoDxMinusDy = (dx-dy)<<1;
+
     int x = x0;
     int y = y0;
 
     path.emplace_back(x, y, 1.0f, 1.0f, 1.0f);
 
-    while (x < x1)
-    {
-        ++x;
-
-        if (p < 0)
+    if(dx>=dy){
+        while (x < x1)
         {
-            p += twoDy;
-        }
-        else
-        {
-            ++y;
-            p += twoDyMinusDx;
-        }
+            ++x;
 
-        path.emplace_back(x, y, 1.0f, 1.0f, 1.0f);
+            if (p < 0)
+            {
+                p += twoDy;
+            }
+            else
+            {
+                y+=ystep;
+                p += twoDyMinusDx;
+            }
+
+            path.emplace_back(x, y, 1.0f, 1.0f, 1.0f);
+        }
+    }
+    else{
+        p = 2*dx-dy;
+        while (y != y1)
+        {
+            y+=ystep;
+
+            if (p < 0)
+            {
+                p += twoDx;
+            }
+            else
+            {
+                ++x;
+                p += twoDxMinusDy;
+            }
+
+            path.emplace_back(x, y, 1.0f, 1.0f, 1.0f);
+        }
     }
 }
 
