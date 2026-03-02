@@ -51,6 +51,11 @@ private:
 
     /// Bresenham circle-drawing algorithm  for center (xc,yc) and a point on circle (x,y)
     static void bresenhamCircle(std::vector<Pixel::Vertex> &path, int xc, int yc, int x, int y);
+    
+    //Midpoint ellipse algo
+    static void bresenhamEllipse(std::vector<Pixel::Vertex> &path, int xc, int yc, int x, int y);
+    
+    
     App();
 
     void render();
