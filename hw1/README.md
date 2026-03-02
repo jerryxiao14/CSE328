@@ -1,15 +1,17 @@
 # HW1
 
-Your Name (Please replace with your name.)
+Jerry(Ruijie) Xiao
 
-Your SBU ID (Please replace with your 9-digit SBU ID.)
+115297528
 
-Your Email (Please replace with your email.)
+ruijie.xiao@stonybrook.edu
 
 ## Overview
 
 - Implemented a sample modern OpenGL program with GLFW as the windowing toolkit. 
-- Implemented a naive Bresenham line drawing routine without edge-case handling. 
+- Implemented a naive Bresenham line drawing routine without edge-case handling.
+- Implemented edge case handing for Bresenham line drawing (negative slope, m>1)
+- Implemented circle and Ellipse midpoint algorithms
 
 ## Notes
 
@@ -54,17 +56,17 @@ Features or parts left unchecked here won't be graded!
 
 - [x] 1. Line Segment (Fully Implemented in This Template)
   - [x] 0 <= m <= 1
-- [ ] 2. Line Segment
-  - [ ] Slope m < -1
-  - [ ] -1 <= m < 0
-  - [ ] 1 < m
-  - [ ] Vertical
-- [ ] 3. Ploy-line & Polygon
-  - [ ] Poly-line
-  - [ ] Polygon
-- [ ] 4. Circle & Ellipse
-  - [ ] Circle
-  - [ ] Ellipse
+- [x] 2. Line Segment
+  - [x] Slope m < -1
+  - [x] -1 <= m < 0
+  - [x] 1 < m
+  - [x] Vertical
+- [x] 3. Ploy-line & Polygon
+  - [x] Poly-line
+  - [x] Polygon
+- [x] 4. Circle & Ellipse
+  - [x] Circle
+  - [ x Ellipse
 - [ ] 5. Polynomial Curve (BONUS PART)
   - [ ] Line
   - [ ] Quadratic Curve
