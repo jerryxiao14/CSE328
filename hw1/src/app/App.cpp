@@ -89,16 +89,18 @@ void App::cursorPosCallback(GLFWwindow * window, double xpos, double ypos)
         pixel->dirty=true;
     }
     else if(app.currentMode==4&&app.showPreview){
-        
-        if(app.circleMode){
-            pixel->path.clear();
+        pixel->path.clear();
             auto x0 = static_cast<int>(app.lastMouseLeftClickPos.x);
             auto y0 = static_cast<int>(app.lastMouseLeftClickPos.y);
             auto x1 = static_cast<int>(app.mousePos.x);
             auto y1 = static_cast<int>(app.mousePos.y);
+        if(app.circleMode){
             bresenhamCircle(pixel->path,x0,y0,x1,y1);
-            pixel->dirty = true;
         }
+        else{
+            bresenhamEllipse(pixel->path,x0,y0,x1,y1);
+        }
+        pixel->dirty = true;
     }
     // Display a preview line which moves with the mouse cursor iff.
     // the most-recent mouse click is left click.
@@ -264,6 +266,62 @@ void App::perFrameTimeLogic(GLFWwindow * window)
 void App::processKeyInput(GLFWwindow * window)
 {
 
+}
+
+void App::bresenhamEllipse(std::vector<Pixel::Vertex> &path, int xc, int yc, int x, int y){
+    int a = abs(xc-x);
+    int b = abs(yc-y);
+
+    int x0 = 0;
+    int y0 = b;
+
+    int a2 = a*a;
+    int b2 = b*b;
+
+    int twoa2 = a2<<1;
+    int twob2 = b2<<1;
+
+    int px = 0;
+    int py = twoa2*y0;
+
+    auto plot = [&](int xc, int yc, int x, int y){
+        path.emplace_back(xc+x,yc+y,1.0f,1.0f,1.0f);
+        path.emplace_back(xc-x,yc+y,1.0f,1.0f,1.0f);
+        path.emplace_back(xc+x,yc-y,1.0f,1.0f,1.0f);
+        path.emplace_back(xc-x,yc-y,1.0f,1.0f,1.0f);
+    };
+
+    plot(xc,yc,x0,y0);
+
+    // region 1 
+    int p = std::round(b2-a2*b+0.25*a2);
+    while(px<py){
+        x0++;
+        px+=twob2;
+        if(p<0) p+=b2+px;
+        else{
+            y0--;
+            py-=twoa2;
+            p+=b2+px-py;
+        }
+        plot(xc,yc,x0,y0);
+    }
+
+    // region 2
+    p = round(b2*(x0+0.5)*(x0+0.5)+a2*(y0-1)*(y0-1)-a2*b2);
+    while(y0>=0){
+        y0--;
+        py-=twoa2;
+        if(p>0){
+            p+=a2-py;
+        }
+        else{
+            x0++;
+            px+=twob2;
+            p+=a2-py+px;
+        }
+        plot(xc,yc,x0,y0);
+    }
 }
 
 void App::bresenhamCircle(std::vector<Pixel::Vertex> &path, int xc, int yc, int x, int y)
