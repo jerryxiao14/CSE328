@@ -13,6 +13,15 @@ class Shader;
 class Renderable;
 
 
+struct Ball{
+    glm::vec2 center; // in NDC coords
+    float r;
+    glm::vec2  v;
+
+    Renderable *drawable;
+};
+
+
 class App : private Window
 {
 public:
@@ -35,10 +44,20 @@ private:
     static constexpr int kWindowWidth {1000};
     static constexpr int kWindowHeight {1000};
 
+    
+
 private:
     App();
 
     void render();
+
+    int mode = 0;
+    std::vector<Ball> balls;
+
+    glm::vec2 screenToNDC(double x,double y);
+    bool canPlaceBall(const glm::vec2 &center, float radius);
+    void spawnBall(const glm::vec2& center, float r, glm::vec2 &velocity);
+    //void updateBalls(float dt);
 
     // Shaders.
     // In principle, a shader could be reused across multiple objects.
@@ -65,6 +84,8 @@ private:
     // (while lastMouseLeftClickPos, if there is one, remains the original value).
     glm::dvec2 lastMouseLeftClickPos {0.0, 0.0};
     glm::dvec2 lastMouseLeftPressPos {0.0, 0.0};
+    
+    
 };
 
 
