@@ -5,6 +5,7 @@
 #include "shape/Circle.h"
 #include "shape/Triangle.h"
 #include "util/Shader.h"
+#include <fstream>
 
 
 App & App::getInstance()
@@ -14,6 +15,46 @@ App & App::getInstance()
 }
 
 
+glm::vec2 App::screenToNDC(double x, double y) {
+    float ndcX = 2.0f * (float)x / kWindowWidth - 1.0f;
+    float ndcY = 1.0f - 2.0f * (float)y / kWindowHeight;
+    return glm::vec2(ndcX, ndcY);
+}
+
+bool App::canPlaceBall(const glm::vec2 &center, float radius) {
+
+    if (center.x - radius < -1.0f) return false;
+    if (center.x + radius >  1.0f) return false;
+    if (center.y - radius < -1.0f) return false;
+    if (center.y + radius >  1.0f) return false;
+
+    for (const Ball &b : balls) {
+        float dist = glm::distance(center, b.center);
+        if (dist < (radius + b.r)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+void App::spawnBall(const glm::vec2& center, float r, glm::vec2 &velocity){
+    float px = (center.x*0.5f+0.5f)* App::kWindowWidth;
+    float py = (center.y * -0.5f + 0.5f)*App::kWindowHeight;
+
+    auto drawable=std::make_unique<Circle>(
+        pCircleShader.get(),
+        std::vector<glm::vec3>{{px,py,r*kWindowWidth*0.5f}}
+    );
+
+    Ball ball;
+    ball.center=center;
+    ball.r = r;
+    ball.v = velocity;
+    ball.drawable = drawable.get();
+
+    shapes.push_back(std::move(drawable));
+    balls.push_back(ball);
+}
 void App::run()
 {
     while (!glfwWindowShouldClose(pWindow))
@@ -65,6 +106,10 @@ void App::keyCallback(GLFWwindow * window, int key, int scancode, int action, in
     {
         app.animationEnabled = !app.animationEnabled;
     }
+    if(key==GLFW_KEY_1){
+        std::cout<<"Key pressed is 1 mode should now be 1\n";
+        app.mode = 1;
+    }
 }
 
 
@@ -83,6 +128,39 @@ void App::mouseButtonCallback(GLFWwindow * window, int button, int action, int m
         else if (action == GLFW_RELEASE)
         {
             app.mousePressed = false;
+
+            //glm::vec2 ndc=app.screenToNDC(app.mousePos.x,app.mousePos.y);
+            switch(app.mode){
+                case 0:
+                    break;
+                case 1:
+                {
+                    std::cout<<"entering mode 1\n";
+                    float r,vx,vy;
+                    
+                    // read in from etc/config.txt
+                    std::ifstream fin("etc/config.txt");
+
+                    if(!fin.is_open()){
+                        std::cerr<<"Error: couldn't open file\n";
+                        break;
+                    }
+
+                    fin>>r>>vx>>vy;
+
+                    std::cout<<"r is "<<r<<" vx is "<<vx<<" vy is "<<vy<<"\n";
+                    glm::vec2 ndc = app.screenToNDC(app.mousePos.x, app.mousePos.y);
+                    glm::vec2 vel(vx,vy);
+
+                    if(app.canPlaceBall(ndc,r)){
+                        app.spawnBall(ndc,r,vel);
+                    }
+                    else{
+                        std::cout<<"Cannot place ball interferes or goes out\n";
+                    }
+                    break;
+                }
+            }
 
             #ifdef DEBUG_MOUSE_POS
             std::cout << "[ " << app.mousePos.x << ' ' << app.mousePos.y << " ]\n";
@@ -137,7 +215,8 @@ App::App() : Window(kWindowWidth, kWindowHeight, kWindowName, nullptr, nullptr)
                                              "src/shader/circle.tesc.glsl",
                                              "src/shader/circle.tese.glsl",
                                              "src/shader/circle.frag.glsl");
-
+    
+    /*                                        
     shapes.emplace_back(
             std::make_unique<Triangle>(
                     pTriangleShader.get(),
@@ -149,6 +228,7 @@ App::App() : Window(kWindowWidth, kWindowHeight, kWindowName, nullptr, nullptr)
                     }
             )
     );
+    */
 
     shapes.emplace_back(
             std::make_unique<Circle>(
