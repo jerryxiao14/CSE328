@@ -23,6 +23,8 @@ public:
 
     void render(float timeElapsedSinceLastFrame, bool animate) override;
 
+    void setCircleGeometry(float x, float y, float r);
+    void syncToGPU();
 private:
     std::vector<glm::vec3> parameters;
 };

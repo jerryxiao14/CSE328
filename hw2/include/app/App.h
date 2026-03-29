@@ -57,7 +57,7 @@ private:
     glm::vec2 screenToNDC(double x,double y);
     bool canPlaceBall(const glm::vec2 &center, float radius);
     void spawnBall(const glm::vec2& center, float r, glm::vec2 &velocity);
-    //void updateBalls(float dt);
+    void updateBalls();
 
     // Shaders.
     // In principle, a shader could be reused across multiple objects.
