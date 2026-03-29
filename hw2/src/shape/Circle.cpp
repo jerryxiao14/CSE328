@@ -33,7 +33,7 @@ void Circle::render(float timeElapsedSinceLastFrame, bool animate)
 {
     if (animate)
     {
-        model = glm::rotate(model, timeElapsedSinceLastFrame);
+        //model = glm::rotate(model, timeElapsedSinceLastFrame);
     }
 
     pShader->use();
@@ -49,4 +49,18 @@ void Circle::render(float timeElapsedSinceLastFrame, bool animate)
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
+}
+
+void Circle::setCircleGeometry(float x, float y, float r) {
+    parameters[0] = glm::vec3(x, y, r);
+    syncToGPU();
+}
+
+void Circle::syncToGPU() {
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferSubData(GL_ARRAY_BUFFER,
+                    0,                                          // offset of 1st attribute in VBO data
+                    sizeof(glm::vec3),                         // size of data being replaced
+                    parameters.data());                        // pointer to new data
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
