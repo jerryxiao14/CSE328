@@ -55,6 +55,70 @@ void App::spawnBall(const glm::vec2& center, float r, glm::vec2 &velocity){
     shapes.push_back(std::move(drawable));
     balls.push_back(ball);
 }
+
+void App::updateBalls(){
+    float dt = static_cast<float>(timeElapsedSinceLastFrame);
+    dt = std::min(dt,0.016f);
+    for (Ball &b:balls){
+        b.center+=b.v*dt;
+        
+        // wall collisions
+        if (b.center.x-b.r<-1.0f){
+            b.center.x=-1.0f+b.r;
+            b.v.x*=-1.0f;
+        }
+        if(b.center.x+b.r>1.0f){
+            b.center.x=1.0f-b.r;
+            b.v.x*=-1.0f;
+        }
+        if(b.center.y-b.r<-1.0f){
+            b.center.y=-1.0f+b.r;
+            b.v.y*=-1.0f;
+        }
+        if(b.center.y+b.r>1.0f){
+            b.center.y=1.0f-b.r;
+            b.v.y*=-1.0f;
+        }
+    }
+
+    for(int i=0;i<balls.size()-1;i++){
+        for(int j=i+1;j<balls.size();j++){
+            Ball &a = balls[i];
+            Ball &b = balls[j];
+
+            float dist = glm::distance(a.center,b.center);
+            if (dist<a.r+b.r){
+                glm::vec2 normal = glm::normalize(b.center - a.center);
+                glm::vec2 relative_velocity=b.v-a.v;
+
+                float velAlongNormal = glm::dot(relative_velocity,normal);
+                if(velAlongNormal>0) continue; // moving apart
+
+                // elastic collision
+                float jImpulse = -2.0f * velAlongNormal/2.0f;
+                glm::vec2 impulse = jImpulse *normal;
+
+                a.v-=impulse;
+                b.v+=impulse;
+
+                float overlap = (a.r+b.r)-dist;
+                a.center-=0.5f*overlap*normal;
+                b.center+=0.5f*overlap*normal;
+            }
+        }
+    }
+
+
+    for(int i=0;i<balls.size();i++){
+        Ball &b = balls[i];
+
+        float px = (b.center.x*0.5f+0.5f)* App::kWindowWidth;
+        float py = (b.center.y * -0.5f + 0.5f)*App::kWindowHeight;
+        float pr = b.r*App::kWindowWidth*0.5f;
+        static_cast<Circle *>(b.drawable)->setCircleGeometry(px, py, pr);
+    }
+}
+
 void App::run()
 {
     while (!glfwWindowShouldClose(pWindow))
@@ -66,7 +130,10 @@ void App::run()
         // Send render commands to OpenGL server
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
-
+        
+        if(animationEnabled){
+            updateBalls();
+        };
         render();
 
         // Check and call events and swap the buffers
@@ -109,6 +176,11 @@ void App::keyCallback(GLFWwindow * window, int key, int scancode, int action, in
     if(key==GLFW_KEY_1){
         std::cout<<"Key pressed is 1 mode should now be 1\n";
         app.mode = 1;
+        app.shapes.clear();
+        app.balls.clear();
+
+        
+
     }
 }
 
@@ -216,7 +288,7 @@ App::App() : Window(kWindowWidth, kWindowHeight, kWindowName, nullptr, nullptr)
                                              "src/shader/circle.tese.glsl",
                                              "src/shader/circle.frag.glsl");
     
-    /*                                        
+                                       
     shapes.emplace_back(
             std::make_unique<Triangle>(
                     pTriangleShader.get(),
@@ -228,7 +300,7 @@ App::App() : Window(kWindowWidth, kWindowHeight, kWindowName, nullptr, nullptr)
                     }
             )
     );
-    */
+    
 
     shapes.emplace_back(
             std::make_unique<Circle>(
