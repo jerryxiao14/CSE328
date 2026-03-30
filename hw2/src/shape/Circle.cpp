@@ -57,6 +57,7 @@ void Circle::setCircleGeometry(float x, float y, float r) {
 }
 
 void Circle::syncToGPU() {
+    glBindVertexArray(vao);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBufferSubData(GL_ARRAY_BUFFER,
                     0,                                          // offset of 1st attribute in VBO data

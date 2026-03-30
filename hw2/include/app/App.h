@@ -7,6 +7,7 @@
 #include <glm/glm.hpp>
 
 #include "app/Window.h"
+#include <queue>
 
 
 class Shader;
@@ -21,6 +22,24 @@ struct Ball{
     Renderable *drawable;
 };
 
+struct Face{
+    glm::vec2 center;
+    float radius;
+    glm::vec2 v;
+
+    Renderable* headCircle = nullptr;
+    Renderable* leftEye = nullptr;
+    Renderable* rightEye = nullptr;
+    Renderable* mouthTriangle = nullptr;
+
+    Face* left=nullptr;
+    Face* right = nullptr;
+};
+
+struct FaceTree{
+    Face* root;
+    std::queue<Face*> bfsQueue;
+};
 
 class App : private Window
 {
@@ -59,6 +78,12 @@ private:
     void spawnBall(const glm::vec2& center, float r, glm::vec2 &velocity);
     void updateBalls();
 
+    void spawnFace(glm::vec2& center, float radius, glm::vec2 &velocity);
+    void updateFaceGeometry(Face* f);
+    void updateFaces();
+
+
+    
     // Shaders.
     // In principle, a shader could be reused across multiple objects.
     // Thus, these shaders are not designed as members of object classes.
@@ -67,6 +92,7 @@ private:
 
     // Objects to render.
     std::vector<std::unique_ptr<Renderable>> shapes;
+    std::vector<std::unique_ptr<FaceTree>> faceTrees;
 
     // Object attributes affected by GUI.
     bool animationEnabled {true};

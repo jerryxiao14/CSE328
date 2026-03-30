@@ -43,6 +43,22 @@ Triangle::Triangle(
     glBindVertexArray(0);
 }
 
+void Triangle::setTriangle(const glm::vec2 &v0, const glm::vec2 &v1, const glm::vec2 &v2,
+                           const glm::vec3 &color)
+{
+    vertices[0].position = v0;
+    vertices[1].position = v1;
+    vertices[2].position = v2;
+
+    vertices[0].color = color;
+    vertices[1].color = color;
+    vertices[2].color = color;
+
+    // Re-upload the data to the GPU
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, vertices.size() * sizeof(Vertex), vertices.data());
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
 
 void Triangle::render(float timeElapsedSinceLastFrame, bool animate)
 {
