@@ -56,13 +56,46 @@ void App::cursorPosCallback(GLFWwindow * window, double xpos, double ypos)
 
 void App::framebufferSizeCallback(GLFWwindow * window, int width, int height)
 {
+    App &app = *reinterpret_cast<App *>(glfwGetWindowUserPointer(window));
+    if(height==0) height = 1;
+
+    app.windowWidth = width;
+    app.windowHeight = height;
     glViewport(0, 0, width, height);
 }
 
 
 void App::keyCallback(GLFWwindow * window, int key, int scancode, int action, int mods)
 {
+    if (action != GLFW_PRESS) return;
+    App & app = *reinterpret_cast<App *>(glfwGetWindowUserPointer(window));
 
+    if(key==GLFW_KEY_1){
+        app.showPlatonicSet = 1;
+
+        app.camera = Camera({0.0f, 0.0f, 10.0f});
+    }
+
+    if(key==GLFW_KEY_X){
+        app.showAxis = !app.showAxis;
+    }
+
+    if(key==GLFW_KEY_F1){
+        app.renderMode =MODE_WIREFRAME;
+        glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
+    }
+
+    if(key==GLFW_KEY_F2){
+        app.renderMode = MODE_FLAT;
+        glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
+
+    }
+
+    if (key == GLFW_KEY_F4)
+    {
+        app.renderMode = MODE_SMOOTH;
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    }
 }
 
 
@@ -221,17 +254,101 @@ void App::initializeShadersAndObjects()
                     glm::mat4(1.0f)
             )
     );
+
+    // ===== Cube =====
+    shapes.emplace_back(
+        std::make_unique<Mesh>(
+            pMeshShader.get(),
+            std::vector<Mesh::Vertex> {
+            // Front (+Z)
+            {{-0.5f,-0.5f, 0.5f},{0,0,1},{1,0,0}},
+            {{ 0.5f,-0.5f, 0.5f},{0,0,1},{1,0,0}},
+            {{ 0.5f, 0.5f, 0.5f},{0,0,1},{1,0,0}},
+            {{-0.5f,-0.5f, 0.5f},{0,0,1},{1,0,0}},
+            {{ 0.5f, 0.5f, 0.5f},{0,0,1},{1,0,0}},
+            {{-0.5f, 0.5f, 0.5f},{0,0,1},{1,0,0}},
+
+            // Back (-Z)
+            {{-0.5f,-0.5f,-0.5f},{0,0,-1},{0,1,0}},
+            {{ 0.5f, 0.5f,-0.5f},{0,0,-1},{0,1,0}},
+            {{ 0.5f,-0.5f,-0.5f},{0,0,-1},{0,1,0}},
+            {{-0.5f,-0.5f,-0.5f},{0,0,-1},{0,1,0}},
+            {{-0.5f, 0.5f,-0.5f},{0,0,-1},{0,1,0}},
+            {{ 0.5f, 0.5f,-0.5f},{0,0,-1},{0,1,0}},
+
+            // Left (-X)
+            {{-0.5f,-0.5f,-0.5f},{-1,0,0},{0,0,1}},
+            {{-0.5f,-0.5f, 0.5f},{-1,0,0},{0,0,1}},
+            {{-0.5f, 0.5f, 0.5f},{-1,0,0},{0,0,1}},
+            {{-0.5f,-0.5f,-0.5f},{-1,0,0},{0,0,1}},
+            {{-0.5f, 0.5f, 0.5f},{-1,0,0},{0,0,1}},
+            {{-0.5f, 0.5f,-0.5f},{-1,0,0},{0,0,1}},
+
+            // Right (+X)
+            {{ 0.5f,-0.5f,-0.5f},{1,0,0},{1,1,0}},
+            {{ 0.5f, 0.5f, 0.5f},{1,0,0},{1,1,0}},
+            {{ 0.5f,-0.5f, 0.5f},{1,0,0},{1,1,0}},
+            {{ 0.5f,-0.5f,-0.5f},{1,0,0},{1,1,0}},
+            {{ 0.5f, 0.5f,-0.5f},{1,0,0},{1,1,0}},
+            {{ 0.5f, 0.5f, 0.5f},{1,0,0},{1,1,0}},
+
+            // Top (+Y)
+            {{-0.5f, 0.5f,-0.5f},{0,1,0},{0,1,1}},
+            {{-0.5f, 0.5f, 0.5f},{0,1,0},{0,1,1}},
+            {{ 0.5f, 0.5f, 0.5f},{0,1,0},{0,1,1}},
+            {{-0.5f, 0.5f,-0.5f},{0,1,0},{0,1,1}},
+            {{ 0.5f, 0.5f, 0.5f},{0,1,0},{0,1,1}},
+            {{ 0.5f, 0.5f,-0.5f},{0,1,0},{0,1,1}},
+
+            // Bottom (-Y)
+            {{-0.5f,-0.5f,-0.5f},{0,-1,0},{1,0,1}},
+            {{ 0.5f,-0.5f, 0.5f},{0,-1,0},{1,0,1}},
+            {{-0.5f,-0.5f, 0.5f},{0,-1,0},{1,0,1}},
+            {{-0.5f,-0.5f,-0.5f},{0,-1,0},{1,0,1}},
+            {{ 0.5f,-0.5f,-0.5f},{0,-1,0},{1,0,1}},
+            {{ 0.5f,-0.5f, 0.5f},{0,-1,0},{1,0,1}},
+        },
+            glm::translate(glm::mat4(1.0f), {2.0f, 0.0f, 0.0f})
+        )
+    );
+
+    // ===== Octahedron =====
+    shapes.emplace_back(
+        std::make_unique<Mesh>(
+            pMeshShader.get(),
+            std::vector<Mesh::Vertex> {
+            // Top pyramid
+            {{ 1,0,0},{ 1,0,0},{1,0,0}}, {{0,1,0},{0,1,0},{0,1,0}}, {{0,0,1},{0,0,1},{0,0,1}},
+            {{0,1,0},{0,1,0},{0,1,0}}, {{-1,0,0},{-1,0,0},{0,1,0}}, {{0,0,1},{0,0,1},{0,0,1}},
+            {{-1,0,0},{-1,0,0},{0,1,0}}, {{0,-1,0},{0,-1,0},{0,0,1}}, {{0,0,1},{0,0,1},{0,0,1}},
+            {{0,-1,0},{0,-1,0},{0,0,1}}, {{1,0,0},{1,0,0},{1,0,0}}, {{0,0,1},{0,0,1},{0,0,1}},
+
+            // Bottom pyramid
+            {{0,1,0},{0,1,0},{1,1,0}}, {{1,0,0},{1,0,0},{1,1,0}}, {{0,0,-1},{0,0,-1},{1,1,0}},
+            {{-1,0,0},{-1,0,0},{1,0,1}}, {{0,1,0},{0,1,0},{1,0,1}}, {{0,0,-1},{0,0,-1},{1,0,1}},
+            {{0,-1,0},{0,-1,0},{0,1,1}}, {{-1,0,0},{-1,0,0},{0,1,1}}, {{0,0,-1},{0,0,-1},{0,1,1}},
+            {{1,0,0},{1,0,0},{1,0,1}}, {{0,-1,0},{0,-1,0},{1,0,1}}, {{0,0,-1},{0,0,-1},{1,0,1}},
+        },
+            glm::translate(glm::mat4(1.0f), {0.0f, 2.0f, 0.0f})
+        )
+    );
 }
 
 
 void App::render()
 {
+    if(renderMode==MODE_FLAT){
+        glShadeModel(GL_FLAT);
+    }
+    else{
+        glShadeModel(GL_SMOOTH);
+    }
     auto t = static_cast<float>(timeElapsedSinceLastFrame);
 
     // Update shader uniforms.
     view = camera.getViewMatrix();
     projection = glm::perspective(glm::radians(camera.zoom),
-                                  static_cast<GLfloat>(kWindowWidth) / static_cast<GLfloat>(kWindowHeight),
+                                  static_cast<GLfloat>(windowWidth) / static_cast<GLfloat>(windowHeight),
                                   0.01f,
                                   100.0f);
 
@@ -254,8 +371,11 @@ void App::render()
     pSphereShader->setVec3("lightColor", lightColor);
 
     // Render.
-    for (auto & s : shapes)
-    {
-        s->render(t);
+    if(showPlatonicSet){
+        for (auto & s : shapes)
+        {
+            if(!showAxis&&dynamic_cast<Line*>(s.get())) continue;
+            s->render(t);
+        }
     }
 }

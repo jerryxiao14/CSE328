@@ -72,6 +72,19 @@ private:
     // (while lastMouseLeftClickPos, if there is one, remains the original value).
     glm::dvec2 lastMouseLeftClickPos {0.0, 0.0};
     glm::dvec2 lastMouseLeftPressPos {0.0, 0.0};
+
+    int renderMode = 2;
+
+    int showAxis = 1;
+    int showPlatonicSet = 1;
+
+    static constexpr int MODE_WIREFRAME = 0;
+    static constexpr int MODE_FLAT = 1;
+    static constexpr int MODE_SMOOTH = 2;
+
+
+    int windowWidth = kWindowWidth;
+    int windowHeight = kWindowHeight;
 };
 
 
