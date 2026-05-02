@@ -65,15 +65,15 @@ cd ..
 Check all features implemented with "x" in "[ ]"s. 
 Features or parts left unchecked here won't be graded! 
 
-- [ ] 1. Bouncing Ball
-  - [ ] Creation
-  - [ ] Dynamically reading config file
-  - [ ] Movement
-  - [ ] Collison detection
-- [ ] 2. 4+ Bouncing Balls
-- [ ] 3. Bouncing Face
-  - [ ] Creation
-  - [ ] Dynamically reading config file
+- [x ] 1. Bouncing Ball
+  - [ x] Creation
+  - [ x] Dynamically reading config file
+  - [ x] Movement
+  - [ x] Collison detection
+- [ x] 2. 4+ Bouncing Balls
+- [x ] 3. Bouncing Face
+  - [x ] Creation
+  - [x ] Dynamically reading config file
   - [ ] Movement
   - [ ] Collison detection
   - [ ] Generation Evolution

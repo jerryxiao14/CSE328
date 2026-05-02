@@ -31,6 +31,9 @@ public:
 
     void render(float timeElapsedSinceLastFrame, bool animate) override;
 
+    void setTriangle(const glm::vec2 &v0, const glm::vec2 &v1, const glm::vec2 &v2,
+                     const glm::vec3 &color = glm::vec3(1.0f, 0.0f, 0.0f));
+
 private:
     std::vector<Vertex> vertices;
 };
